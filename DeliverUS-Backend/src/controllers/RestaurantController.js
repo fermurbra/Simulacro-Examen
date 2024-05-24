@@ -95,12 +95,34 @@ const destroy = async function (req, res) {
   }
 }
 
+const promote = async function (req, res) {
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    const otherPromotedRestaurant = await Restaurant.findOne({
+      where: {
+        promoted: true,
+        id: { [Sequelize.Op.ne]: restaurant.id }
+      }
+    })
+    if (otherPromotedRestaurant) {
+      otherPromotedRestaurant.promoted = false
+      await otherPromotedRestaurant.save()
+    }
+    restaurant.promoted = true
+    const updatedRestaurant = await restaurant.save()
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
+
 const RestaurantController = {
   index,
   indexOwner,
   create,
   show,
   update,
-  destroy
+  destroy,
+  promote
 }
 export default RestaurantController
